@@ -284,4 +284,33 @@ describe('jsxDecorator', () => {
       '<div className="foo" />'
     );
   });
+
+  it('renders nested MDX properly', async () => {
+    const Container: React.FunctionComponent = ({ children }) => <div>{children}</div>;
+    Container.displayName = 'Container';
+    // FIXME: generate this from actual MDX
+    const MDXCreateElement: React.FunctionComponent<{ mdxType: string; originalType: string }> = ({
+      mdxType,
+      originalType,
+    }) => <div>mdx element</div>;
+    MDXCreateElement.displayName = 'MDXCreateElement';
+
+    jsxDecorator(
+      () => (
+        <Container>
+          <MDXCreateElement mdxType="div" originalType="div" />
+        </Container>
+      ),
+      makeContext('mdx-args', { __isArgsStory: true }, {})
+    );
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(mockChannel.emit).toHaveBeenCalledWith(
+      SNIPPET_RENDERED,
+      'jsx-test--mdx-args',
+      `<Container>
+  <div />
+</Container>`
+    );
+  });
 });
